@@ -19,7 +19,7 @@
 
 2. 下載。
    
-   (1)點選此頁面上方的'Clone`按鈕再點選'Download ZIP'。
+   (1)點選此頁面上方的綠色'Code`按鈕再點選'Download ZIP'，並自行解壓縮。
 
 3. 依照需求，用記事本或Notepad++之類的開發工具打開`PoE_AffixReader`為名的.ahk檔案，依照 使用教學.txt 設定好想要保留的詞綴和各項參數。
 
