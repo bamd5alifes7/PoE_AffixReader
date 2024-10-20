@@ -189,6 +189,8 @@ getItemRarity()
 		return 1
 	If InStr(clipboard,"稀有度: 稀有") or InStr(clipboard,"Rarity: Rare")
 		return 2
+	If InStr(clipboard,"稀有度: 傳奇") or InStr(clipboard,"Rarity: Unique")
+		return 3	
 }
 
 readIni()
@@ -198,8 +200,8 @@ readIni()
 	IniRead, Alteration_Y, setting.ini , coordinate, Alteration_Y, 340
 	IniRead, Augmentation_X, setting.ini , coordinate, Augmentation_X, 233
 	IniRead, Augmentation_Y, setting.ini , coordinate, Augmentation_Y, 391
-	IniRead, Scouring_X, setting.ini , coordinate, Scouring_X, 432
-	IniRead, Scouring_Y, setting.ini , coordinate, Scouring_Y, 479
+	IniRead, Scouring_X, setting.ini , coordinate, Scouring_X, 581
+	IniRead, Scouring_Y, setting.ini , coordinate, Scouring_Y, 694
 	IniRead, Regal_X, setting.ini , coordinate, Regal_X, 430
 	IniRead, Regal_Y, setting.ini , coordinate, Regal_Y, 336
 	IniRead, Transmutation_X, setting.ini , coordinate, Transmutation_X, 59

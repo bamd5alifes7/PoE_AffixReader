@@ -14,9 +14,14 @@
 
 ;------設定目標詞綴------
 global affix := Array()
-affix.Push(["3 Charges when you are Hit by an Enemy","(5[1-9]|60)% increased Armour during Effect","(9|1[0-4])% increased Movement Speed during Effect"])
+;基礎挨揍藥劑
+;affix.Push(["3 Charges when you are Hit by an Enemy","(5[1-9]|60)% increased Armour during Effect","(9|1[0-4])% increased Movement Speed during Effect"])
 
+;藥劑暴擊充能 擊中恢復 和一些有用的後綴
+;affix.Push(["(2[6-9]|3[0–5])% chance to gain a Flask Charge when you deal a Critical Strike","(4[4-9]|5[0-5])% increased Critical Strike Chance during Effect","(5[1-9]|60)% increased Evasion Rating during Effect","(9|1[0-4])% increased Movement Speed during Effect","(3[5-9])% less Duration\nImmunity to Bleeding and Corrupted Blood during Effect"],["3 Charges when you are Hit by an Enemy","(5[1-9]|60)% increased Armour during Effect","(9|1[0-4])% increased Movement Speed during Effect"])
 
+;魔血藥劑
+affix.Push(["25% increased effect","(5[1-9]|60)% increased Armour during Effect","(1[2-4])% increased Movement Speed during Effect"])
 
 
 
