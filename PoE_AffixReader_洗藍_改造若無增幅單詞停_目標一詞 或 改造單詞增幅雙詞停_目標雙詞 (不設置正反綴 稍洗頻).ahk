@@ -21,9 +21,10 @@ global affix := Array()
 ;affix.Push(["(2[6-9]|3[0–5])% chance to gain a Flask Charge when you deal a Critical Strike","(4[4-9]|5[0-5])% increased Critical Strike Chance during Effect","(5[1-9]|60)% increased Evasion Rating during Effect","(9|1[0-4])% increased Movement Speed during Effect","(3[5-9])% less Duration\nImmunity to Bleeding and Corrupted Blood during Effect"],["3 Charges when you are Hit by an Enemy","(5[1-9]|60)% increased Armour during Effect","(9|1[0-4])% increased Movement Speed during Effect"])
 
 ;魔血藥劑
-affix.Push(["25% increased effect","(5[1-9]|60)% increased Armour during Effect","(1[2-4])% increased Movement Speed during Effect"])
+;affix.Push(["25% increased effect","(5[1-9]|60)% increased Armour during Effect","(1[2-4])% increased Movement Speed during Effect"])
 
-
+;正火或陷阱頭
+affix.Push(["Level 20 Concentrated","Level 20 Burning","Level 20 Increased Area","Level 20 Trap","Nearby Enemies take 6% increased Elemental"])
 
 ;===============================================================================
 ; Settings:

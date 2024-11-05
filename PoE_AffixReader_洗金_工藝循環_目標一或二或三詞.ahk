@@ -17,7 +17,9 @@ global affix := Array()
 ;火傷星團
 ;affix.Push(["Sadist","Corrosive Elements","Doryani's Lesson","Disorienting Display","Prismatic Heart","Widespread Destruction","Master of Fire","Smoking Remains","Cremator","Burning Bright"])
 ;混傷星團
-affix.Push(["Grim Oath","Overwhelming Malice","Touch of Cruelty","Unwaveringly Evil","Unspeakable Gifts","Dark Ideation","Unholy Grace","Wicked Pall"])
+;affix.Push(["Grim Oath","Overwhelming Malice","Touch of Cruelty","Unwaveringly Evil","Unspeakable Gifts","Dark Ideation","Unholy Grace","Wicked Pall"])
+;冰傷星團
+affix.Push(["Sadist","Corrosive Elements","Doryani's Lesson","Disorienting Display","Prismatic Heart","Widespread Destruction","Snowstorm","Blanketed Snow","Cold to the Core","Cold-Blooded Killer","Inspired Oppression","Deep Chill","Blast-Freeze","Stormrider"])
 
 
 ;===============================================================================
@@ -25,7 +27,7 @@ affix.Push(["Grim Oath","Overwhelming Malice","Touch of Cruelty","Unwaveringly E
 ; 數值設定由readIni設定於settings.ini文件中，也可手動修改
 ;===============================================================================
 
-global targetAffixNum := 3 
+global targetAffixNum := 2
 ;default : 3 目標詞墜的數量
 
 global allowRare2Affix := 1 
@@ -76,7 +78,7 @@ global itemRarity
 global ItemPos := [0,0]
 global LShiftState := 0
 global Increased := 0
-global mouseState := 0 ;[勿動] 0=空,1=改造,2=增幅,3=重鑄,4=富豪,5=蛻變,6=點金,7=混沌, 8=精髓
+global mouseState := 0
 
 ;從setting.ini中抓取設定，若沒有資料則使用readIni()中的預設值。預設解析度 default : 2560*1440
 global Alteration_X
@@ -95,7 +97,8 @@ global Chaos_X
 global Chaos_Y 
 global Essence_X 
 global Essence_Y  
-
+global CraftingButton_X 
+global CraftingButton_Y  
 
 ;-----------DON'T TOUCH-----------以下勿碰-----------
 
@@ -118,13 +121,14 @@ readIni()
 MsgBox, [F4]開始速刷`r`n[F7]通貨位置設定工具`r`n[F12]長案強制結束`r`n開始前請確認座標已設好且視窗已聚焦在POE上`r`n並將滑鼠移動到目標裝備上`r`n原作:加速器(Acc)`r`n修訂:bamd5alifes7
 
 
-F4:: chaosLoop()
+F4:: CraftingLoop()
 F7:: saveCoordinatesTool()
 
 
 
-chaosLoop()
-	{	
+CraftingLoop()
+	{
+		
 	;檢查運作時是否處於Path of Exile視窗
 	IfWinnotActive,Path of Exile
 		{
@@ -143,7 +147,7 @@ chaosLoop()
 	saveMousePos()
 	
 	;行前檢查放在迴圈外。
-	
+
 	;複製物品資訊
 	send ^c
 	send ^c
@@ -162,8 +166,8 @@ chaosLoop()
 		{
 		MsgBox,The item has met the target requirements. To avoid making mistakes, please modify the item manually before using this function.`r`n物品已符合目標要求。為了防呆，請手動修改物品詞墜再使用此功能。
 		return
-		}			
-
+		}
+			
 	;正式動作
 	loop
 		{
@@ -178,21 +182,28 @@ chaosLoop()
 				}		
 			
 			;保留剪貼簿內容，用來檢查操作後有沒有變化
-			clipboardold = %Clipboard%					
-
-			;確認滑鼠為空,物品稀有度為普通,點金石
-			if (LShiftState = 0 && mouseState = 0 && itemRarity = 0 && Increased = 0)
+			clipboardold = %Clipboard%		
+						
+			;若物品稀有度不是稀有,丟出提示訊息
+			if (itemRarity != 2 )
 				{
-				alchemyItem()
-				
-				;操作後，複製物品前Delay，目的是等待遊戲反應。這是最重要的延遲屬性。
+				MsgBox,The itemrarity is not rare, so the crafting will be stuck. Please alchemy item yourself.`r`n物品並非稀有，工藝台將會無法卡住，請自行點金。
+				return
+				}
+						
+			;確認此前的程式狀態。Shift沒按下、滑鼠沒捏東西、沒用過增幅石,點選工藝按鈕
+			else if (LShiftState = 0 && mouseState = 0 && Increased = 0)
+				{					
+				craftingButton()
+
+				;操作後，複製物品前Delay，目的是等待遊戲反應
 				sleep, %clipboardDelay%
 				
 				;複製物品資訊，檢查是否和操作前一樣，不一樣才離開。最大10圈，因為低機率操作完會一模一樣。
 				loop, 10
 					{
 					send ^c
-					send ^c						
+					send ^c
 					;檢查物品的稀有度
 					itemRarity = % getItemRarity()
 					;檢查是否和操作前一樣，不一樣才離開。因可能有重鑄動作，再加上itemRarity不可為普通的條件。
@@ -202,85 +213,7 @@ chaosLoop()
 						break
 						}
 					}
-				}
-			
-			;確認滑鼠為空,物品稀有度為魔法,重鑄點金
-			else if (LShiftState = 0 && mouseState = 0 && itemRarity = 1 && Increased = 0)
-				{					
-				scouringAlchemy()
 				
-				;操作後，複製物品前Delay，目的是等待遊戲反應
-				sleep, %clipboardDelay%
-				
-				;複製物品資訊，檢查是否和操作前一樣，不一樣才離開。最大10圈，因為低機率操作完會一模一樣。
-				loop, 10
-					{
-					send ^c
-					send ^c
-					;檢查物品的稀有度
-					itemRarity = % getItemRarity()
-					;檢查是否和操作前一樣，不一樣才離開。因可能有重鑄動作，再加上itemRarity不可為普通的條件。
-					;括號內自動為表達式所以無須用%來表示變數。另外，Clipboard是內建變量，即使括號外也不可被%包圍，包圍時剪貼簿內簡短語句卻可行，句子一長就爆炸。
-					if (%clipboardold% != Clipboard) and (itemRarity != 0)
-						{
-						break
-						}
-					}				
-				}
-
-			;確認滑鼠為空,物品為稀有,洗顆混沌，並把混沌捏手上
-			if (LShiftState = 0 && mouseState = 0 && itemRarity = 2 && Increased = 0)
-				{	
-				Send {LShift Up}			
-				Send {LShift Down}
-				LShiftState := 1
-				MouseClick, Right,Chaos_X,Chaos_Y,1,delay
-				mouseState = 7
-				MouseClick, Left,ItemPos[0],ItemPos[1],1,delay
-				
-				;操作後，複製物品前Delay，目的是等待遊戲反應
-				sleep, %clipboardDelay%
-				
-				;複製物品資訊，檢查是否和操作前一樣，不一樣才離開。最大10圈，因為低機率操作完會一模一樣。
-				loop, 10
-					{
-					send ^c
-					send ^c
-					;檢查物品的稀有度
-					itemRarity = % getItemRarity()
-					;檢查是否和操作前一樣，不一樣才離開。因可能有重鑄動作，再加上itemRarity不可為普通的條件。
-					;括號內自動為表達式所以無須用%來表示變數。另外，Clipboard是內建變量，即使括號外也不可被%包圍，包圍時剪貼簿內簡短語句卻可行，句子一長就爆炸。
-					if (%clipboardold% != Clipboard) and (itemRarity != 0)
-						{
-						break
-						}
-					}				
-				
-				}
-
-			;如果滑鼠捏著混沌石,持續混沌
-			if(mouseState = 7)
-				{
-
-				MouseClick, Left,ItemPos[0],ItemPos[1],1,delay
-				
-				;操作後，複製物品前Delay，目的是等待遊戲反應
-				sleep, %clipboardDelay%
-				
-				;複製物品資訊，檢查是否和操作前一樣，不一樣才離開。最大10圈，因為低機率操作完會一模一樣。
-				loop, 10
-					{
-					send ^c
-					send ^c
-					;檢查物品的稀有度
-					itemRarity = % getItemRarity()
-					;檢查是否和操作前一樣，不一樣才離開。因可能有重鑄動作，再加上itemRarity不可為普通的條件。
-					;括號內自動為表達式所以無須用%來表示變數。另外，Clipboard是內建變量，即使括號外也不可被%包圍，包圍時剪貼簿內簡短語句卻可行，句子一長就爆炸。
-					if (%clipboardold% != Clipboard) and (itemRarity != 0)
-						{
-						break
-						}
-					}				
 				}
 			
 			;取得詞綴判斷之前的延遲。緩衝用，此處有就好意義不大。
@@ -341,7 +274,7 @@ chaosLoop()
 				{
 				break
 				}
-			
+
 			;額外延遲
 			sleep, %debugModeDelay%			
 			}

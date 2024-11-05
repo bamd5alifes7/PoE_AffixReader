@@ -113,13 +113,13 @@ saveCoordinatesTool()
 		return
 	}
 	MouseGetPos, thisPosX, thisPosY
-	;1=改造,2=增幅,3=重鑄,4=富豪,5=蛻變,6=點金,7=混沌,8=精髓
-	PosX := ["Alteration_X","Augmentation_X","Scouring_X","Regal_X","Transmutation_X","Alchemy_X","Chaos_X","Essence_X"]
-	PosY := ["Alteration_Y","Augmentation_Y","Scouring_Y","Regal_Y","Transmutation_Y","Alchemy_Y","Chaos_Y","Essence_Y"]
-	InputBox, affixID,其他解析度通貨座標指定工具, 座標[ %thisPosX% `, %thisPosY% ]`r`n請輸入此座標之通貨ID`n1=改造 `, 2=增幅 `, 3=重鑄 `, 4=富豪 `, 5=蛻變 `, 6=點金`, 7=混沌`, 8=精髓`r`n若你確定此物品不為4連以上物品，可改點金石的座標，把束縛石當點金石用。`r`n精髓部分可設置任意精髓座標。,,450,250
+	;1=改造,2=增幅,3=重鑄,4=富豪,5=蛻變,6=點金,7=混沌,8=精髓,9=工藝按鈕
+	PosX := ["Alteration_X","Augmentation_X","Scouring_X","Regal_X","Transmutation_X","Alchemy_X","Chaos_X","Essence_X","CraftingButton_X"]
+	PosY := ["Alteration_Y","Augmentation_Y","Scouring_Y","Regal_Y","Transmutation_Y","Alchemy_Y","Chaos_Y","Essence_Y","CraftingButton_Y"]
+	InputBox, affixID,其他解析度通貨座標指定工具, 座標[ %thisPosX% `, %thisPosY% ]`r`n請輸入此座標之通貨ID`n1=改造 `, 2=增幅 `, 3=重鑄 `, 4=富豪 `, 5=蛻變 `, 6=點金`, 7=混沌`, 8=精髓,9=工藝按鈕`r`n若你確定此物品不為4連以上物品，可改點金石的座標，把束縛石當點金石用。`r`n精髓部分可設置任意精髓座標。,,450,250
 	if not ErrorLevel
 	{
-		checkAffixID := RegExMatch(affixID, "[1-8]$")
+		checkAffixID := RegExMatch(affixID, "[1-9]$")
 		if checkAffixID = 1
 		{
 			iniWrite,% thisPosX, setting.ini, coordinate, % PosX[affixID]
@@ -212,6 +212,8 @@ readIni()
 	IniRead, Chaos_Y, setting.ini , coordinate, Chaos_Y, 373	
 	IniRead, Essence_X, setting.ini , coordinate, Essence_X, 68
 	IniRead, Essence_Y, setting.ini , coordinate, Essence_Y, 313
+	IniRead, CraftingButton_X, setting.ini , coordinate, CraftingButton_X, 1260
+	IniRead, CraftingButton_Y, setting.ini , coordinate, CraftingButton_Y, 810	
 	IniRead, logFile, setting.ini , coordinate, logFile,%A_ScriptDir%\log_affix.txt
 	
 	return
@@ -373,4 +375,25 @@ getConformSecondAffix()
 	}
 	
 	return 0
+}
+
+craftingButton()
+{
+	IfWinnotActive,Path of Exile
+	{
+		MsgBox,請確認視窗已聚焦在POE上!
+		return
+	}
+	IfWinActive,Path of Exile 
+	{	
+		SaveMousePos()
+
+		MouseClick, Left,CraftingButton_X,CraftingButton_Y,1,delay
+		Random, rand, %randomMin%, %randomMax%
+		sleep % rand + 20 
+		MouseMove,ItemPos[0],ItemPos[1],delay
+		Random, rand, %randomMin%, %randomMax%
+		sleep % rand + 20 
+	}
+	return
 }

@@ -282,7 +282,13 @@ scouringAlchemyLoop()
 						}
 					}
 				}
-			
+
+			;假如這個世界發瘋，骰出大於三，總之先break給使用者自行判斷
+			if % ConformNum > 3
+				{
+				break
+				}
+				
 			;額外延遲
 			sleep, %debugModeDelay%			
 			}
