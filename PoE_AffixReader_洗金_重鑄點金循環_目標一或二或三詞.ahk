@@ -15,9 +15,11 @@
 ;------設定目標詞綴------
 global affix := Array()
 ;火傷星團
-affix.Push(["Sadist","Corrosive Elements","Doryani's Lesson","Disorienting Display","Prismatic Heart","Widespread Destruction","Master of Fire","Smoking Remains","Cremator","Burning Bright"])
+;affix.Push(["Sadist","Corrosive Elements","Doryani's Lesson","Disorienting Display","Prismatic Heart","Widespread Destruction","Master of Fire","Smoking Remains","Cremator","Burning Bright"])
 ;混傷星團
 ;affix.Push(["Grim Oath","Overwhelming Malice","Touch of Cruelty","Unwaveringly Evil","Unspeakable Gifts","Dark Ideation","Unholy Grace","Wicked Pall"])
+;弓星團
+affix.Push(["Vicious Skewering","Arcing Shot","Tempered Arrowheads","Broadside","Smite the Weak","Heavy Hitter","Martial Prowess","Calamitous","Devastator","Fuel the Fight","Drive the Destruction","Feed the Fury"])
 
 
 ;===============================================================================
