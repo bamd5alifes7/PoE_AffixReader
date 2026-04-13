@@ -1,6 +1,9 @@
 ﻿class CraftingEngine {
     __New(profile, client, matcher, logger, app) {
         this.profile := profile
+        if profile.Has("groupSets") {
+            ProfileRegistry.ActivateGroupSet(this.profile, this.profile["activeGroupSetIndex"])
+        }
         this.client := client
         this.matcher := matcher
         this.logger := logger
@@ -23,6 +26,7 @@
         }
 
         loop {
+            Sleep(-1)
             if this.app.stopRequested || GetKeyState("F12", "P") {
                 this.app.stopRequested := true
                 this.logger.Log("INFO", "profile_stopped_by_user", this.StatePayload(state))
@@ -49,6 +53,7 @@
                 break
             }
 
+            Sleep(-1)
             Sleep(this.profile["debugDelay"])
         }
     }

@@ -7,11 +7,12 @@
         tempTarget := Max(target, 1)
         while tempTarget >= 1 {
             for _, group in groups {
+                patterns := this.GroupPatterns(group)
                 found := 0
-                if group.Length < tempTarget {
+                if patterns.Length < tempTarget {
                     continue
                 }
-                for _, pattern in group {
+                for _, pattern in patterns {
                     if RegExMatch(text, pattern) {
                         found += 1
                     }
@@ -23,5 +24,12 @@
             tempTarget -= 1
         }
         return 0
+    }
+
+    GroupPatterns(group) {
+        if group is Map {
+            return group.Has("patterns") ? group["patterns"] : []
+        }
+        return group
     }
 }
