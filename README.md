@@ -2,8 +2,8 @@
 
 PoE_AffixReader v2 is an AutoHotkey v2-based Path of Exile crafting helper that reads copied item text, matches configured affix patterns, and automates crafting workflows through a dashboard-style UI.
 
-[繁體中文說明](C:/Users/Adrain Hui/Documents/GitHub/PoE_AffixReader/README.zh-TW.md)  
-[English Guide](C:/Users/Adrain Hui/Documents/GitHub/PoE_AffixReader/README.en.md)
+[繁體中文說明](https://github.com/bamd5alifes7/PoE_AffixReader/blob/main/README.zh-TW.md)  
+[English Guide](https://github.com/bamd5alifes7/PoE_AffixReader/blob/main/README.en.md)
 
 ## Highlights
 

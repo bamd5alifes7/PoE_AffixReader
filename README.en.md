@@ -1,7 +1,7 @@
 # PoE_AffixReader v2
 
-[繁體中文說明](PoE_AffixReader/README.zh-TW.md)  
-[Project Overview](/PoE_AffixReader/README.md)
+[繁體中文說明](https://github.com/bamd5alifes7/PoE_AffixReader/blob/main/README.zh-TW.md)  
+[Project Overview](https://github.com/bamd5alifes7/PoE_AffixReader/blob/main/README.md)
 
 This build is the AutoHotkey v2 version of the project.
 
