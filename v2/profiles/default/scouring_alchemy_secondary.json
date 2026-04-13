@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "scouring_alchemy_secondary",
+  "name": "Scour + Alch + Secondary",
+  "type": "scouringAlchemy",
+  "targetAffixNum": 1,
+  "targetSecondAffixNum": 1,
+  "clipboardDelay": 200,
+  "groupSets": [
+    {
+      "name": "Default",
+      "affixGroups": [
+        {
+          "name": "Life",
+          "patterns": [
+            "to maximum Life"
+          ]
+        }
+      ],
+      "secondaryAffixGroups": [
+        {
+          "name": "Useful Suffix",
+          "patterns": [
+            "Fire Resistance",
+            "Cold Resistance",
+            "Lightning Resistance",
+            "Chaos Resistance",
+            "Damage taken Recouped as Life",
+            "all Elemental Resistances",
+            "to Dexterity",
+            "to Intelligence"
+          ]
+        }
+      ],
+      "relativeAffixGroups": []
+    }
+  ]
+}

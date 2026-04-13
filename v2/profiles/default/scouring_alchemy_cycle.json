@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "id": "scouring_alchemy_cycle",
+  "name": "Scour + Alch",
+  "type": "scouringAlchemy",
+  "targetAffixNum": 3,
+  "clipboardDelay": 200,
+  "groupSets": [
+    {
+      "name": "Default",
+      "affixGroups": [
+        {
+          "name": "Bow Cluster",
+          "patterns": [
+            "Vicious Skewering",
+            "Arcing Shot",
+            "Tempered Arrowheads",
+            "Broadside",
+            "Smite the Weak",
+            "Heavy Hitter",
+            "Martial Prowess",
+            "Calamitous",
+            "Devastator",
+            "Fuel the Fight",
+            "Drive the Destruction",
+            "Feed the Fury"
+          ]
+        }
+      ],
+      "secondaryAffixGroups": [],
+      "relativeAffixGroups": []
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "id": "alteration_single_or_aug_two",
+  "name": "Alt 1 / Aug 2",
+  "type": "alterationAugment",
+  "targetAffixNum": 2,
+  "clipboardDelay": 200,
+  "groupSets": [
+    {
+      "name": "Default",
+      "affixGroups": [
+        {
+          "name": "Critical Flask",
+          "patterns": [
+            "(2[6-9]|3[0-5])% chance to gain a Flask Charge when you deal a Critical Strike",
+            "(4[4-9]|5[0-5])% increased Critical Strike Chance during Effect",
+            "(5[1-9]|60)% increased Evasion Rating during Effect",
+            "(9|1[0-4])% increased Movement Speed during Effect",
+            "(3[5-9])% less Duration\nImmunity to Bleeding and Corrupted Blood during Effect",
+            "(5[1-9]|60)% increased Armour during Effect",
+            "(5[2-9]|6[0-5])% reduced Effect of Curses on you during Effect"
+          ]
+        },
+        {
+          "name": "Hit Flask",
+          "patterns": [
+            "3 Charges when you are Hit by an Enemy",
+            "(5[1-9]|60)% increased Armour during Effect",
+            "(5[2-9]|6[0-5])% reduced Effect of Curses on you during Effect",
+            "(9|1[0-4])% increased Movement Speed during Effect"
+          ]
+        }
+      ],
+      "secondaryAffixGroups": [],
+      "relativeAffixGroups": []
+    }
+  ]
+}

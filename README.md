@@ -1,29 +1,43 @@
-# PoE_AffixReader
-可在Path of Exile中幫忙洗詞綴的小工具。以AutoHotKey編寫。
+# PoE_AffixReader v2
 
-原作:加速器(Acc)
-修訂:bamd5alifes7
+PoE_AffixReader v2 is an AutoHotkey v2-based Path of Exile crafting helper that reads copied item text, matches configured affix patterns, and automates crafting workflows through a dashboard-style UI.
 
-## 按鍵說明
+[繁體中文說明](C:/Users/Adrain Hui/Documents/GitHub/PoE_AffixReader/README.zh-TW.md)  
+[English Guide](C:/Users/Adrain Hui/Documents/GitHub/PoE_AffixReader/README.en.md)
 
-[F7]通貨位置設定工具。依照滑鼠游標位置設定通貨座標。預設座標的螢幕尺寸為2560x1440。
+## Highlights
 
-[F4]按下後，開始洗詞綴。
+- dashboard-style main UI
+- profile system with built-in and user overrides
+- group sets for switching between target packages
+- editable primary / secondary / relative affix groups
+- log output for troubleshooting and tuning
 
-[F12]長按強制結束。
+## Quick Start
 
+1. Install AutoHotkey v2.
+2. Run `PoE_AffixReader_v2.ahk`.
+3. Open the dashboard and choose a profile.
+4. Capture coordinates if your game layout differs from the default setup.
+5. Press `F4` to start and `F12` to stop.
 
-## 如何使用
+## Hotkeys
 
-1. 下載並安裝[AutoHotKey](https://www.autohotkey.com/)。如果會閃退或沒反應，試試看改用我編寫時的版本號 `AutoHotkey_1.1.34.02`。
+- `F4`: start the active profile
+- `F7`: capture the current mouse position into `settings.json`
+- `F8`: open the profile picker
+- `F9`: show the dashboard
+- `F10`: edit the active set's affix groups
+- `F12`: request stop
 
-2. 下載。
-   
-   (1)點選此頁面上方的綠色'Code`按鈕再點選'Download ZIP'，並自行解壓縮。
+## Files
 
-3. 依照需求，用記事本或Notepad++之類的開發工具打開`PoE_AffixReader`為名的.ahk檔案，依照 **使用教學.txt** 設定好想要保留的詞綴和各項參數。
+- `v2/profiles/default/*.json`: built-in profiles
+- `v2/profiles/user/settings.json`: user coordinate and settings data
+- `v2/profiles/user/overrides.json`: user profile overrides
+- `log_affix_v2.txt`: run log for troubleshooting
 
-4. 詳讀其餘程式碼，讀到你覺得安心。(恐懼是來自於未知)
-   
-5. 左鍵雙擊設定好目標的 `PoE_AffixReader` .ahk檔案，閱讀或跳過簡介後就可開始使用。
-[v2 重構版說明](./v2/README_v2.md)
+## Documentation
+
+- For complete usage, setup, affix matching, delay tuning, and troubleshooting, see [README.en.md](C:/Users/Adrain Hui/Documents/GitHub/PoE_AffixReader/README.en.md).
+- For the full Traditional Chinese guide, see [README.zh-TW.md](C:/Users/Adrain Hui/Documents/GitHub/PoE_AffixReader/README.zh-TW.md).

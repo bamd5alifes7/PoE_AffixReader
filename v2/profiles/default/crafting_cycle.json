@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "crafting_cycle",
+  "name": "Crafting",
+  "type": "crafting",
+  "targetAffixNum": 2,
+  "clipboardDelay": 200,
+  "groupSets": [
+    {
+      "name": "Default",
+      "affixGroups": [
+        {
+          "name": "Cold Cluster",
+          "patterns": [
+            "Sadist",
+            "Corrosive Elements",
+            "Doryani's Lesson",
+            "Disorienting Display",
+            "Prismatic Heart",
+            "Widespread Destruction",
+            "Snowstorm",
+            "Blanketed Snow",
+            "Cold to the Core",
+            "Cold-Blooded Killer",
+            "Inspired Oppression",
+            "Deep Chill",
+            "Blast-Freeze",
+            "Stormrider"
+          ]
+        }
+      ],
+      "secondaryAffixGroups": [],
+      "relativeAffixGroups": []
+    }
+  ]
+}

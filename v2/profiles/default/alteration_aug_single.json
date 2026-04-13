@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "alteration_aug_single",
+  "name": "Alt + Aug 1",
+  "type": "alterationAugment",
+  "targetAffixNum": 1,
+  "clipboardDelay": 200,
+  "augmentOnZero": true,
+  "groupSets": [
+    {
+      "name": "Default",
+      "affixGroups": [
+        {
+          "name": "Helmet Righteous Fire",
+          "patterns": [
+            "Level 20 Concentrated",
+            "Level 20 Burning",
+            "Level 20 Increased Area",
+            "Level 20 Trap",
+            "Nearby Enemies take 6% increased Elemental"
+          ]
+        }
+      ],
+      "secondaryAffixGroups": [],
+      "relativeAffixGroups": []
+    }
+  ]
+}

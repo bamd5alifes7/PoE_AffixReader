@@ -1,5 +1,64 @@
-﻿class ProfileRegistry {
-    static Create() {
+class ProfileRegistry {
+    static Create(baseDir := "") {
+        profiles := ProfileRegistry.LoadDefaultProfiles(baseDir)
+        if profiles.Count > 0 {
+            return profiles
+        }
+        return ProfileRegistry.CreateEmbedded()
+    }
+
+    static LoadDefaultProfiles(baseDir := "") {
+        profiles := Map()
+        if baseDir = "" {
+            return profiles
+        }
+
+        defaultDir := baseDir "\v2\profiles\default"
+        if !DirExist(defaultDir) {
+            return profiles
+        }
+
+        foundFiles := 0
+        loop files defaultDir "\*.json" {
+            foundFiles += 1
+            data := JsonData.LoadFile(A_LoopFileFullPath)
+            profile := ProfileRegistry.ProfileFromObject(data)
+            profiles[profile["id"]] := profile
+        }
+
+        return foundFiles > 0 ? profiles : Map()
+    }
+
+    static ProfileFromObject(data) {
+        overrides := Map()
+        for key, value in data {
+            if key = "schemaVersion" {
+                continue
+            }
+            overrides[key] := ProfileRegistry.CloneJsonValue(value)
+        }
+        return ProfileRegistry.BaseProfile(overrides)
+    }
+
+    static CloneJsonValue(value) {
+        if value is Map {
+            cloned := Map()
+            for key, item in value {
+                cloned[key] := ProfileRegistry.CloneJsonValue(item)
+            }
+            return cloned
+        }
+        if value is Array {
+            cloned := []
+            for _, item in value {
+                cloned.Push(ProfileRegistry.CloneJsonValue(item))
+            }
+            return cloned
+        }
+        return value
+    }
+
+    static CreateEmbedded() {
         profiles := Map()
 
         profiles["alteration_single_or_aug_two"] := ProfileRegistry.BaseProfile(Map(
@@ -9,7 +68,7 @@
             "targetAffixNum", 2,
             "clipboardDelay", 200,
             "affixGroups", [
-                Map("name", "Critical Flask", "patterns", ["(2[6-9]|3[0-5])% chance to gain a Flask Charge when you deal a Critical Strike","(4[4-9]|5[0-5])% increased Critical Strike Chance during Effect","(5[1-9]|60)% increased Evasion Rating during Effect","(9|1[0-4])% increased Movement Speed during Effect","(3[5-9])% less Duration\nImmunity to Bleeding and Corrupted Blood during Effect","(5[1-9]|60)% increased Armour during Effect","(5[2-9]|6[0-5])% reduced Effect of Curses on you during Effect"]),
+                Map("name", "Critical Flask", "patterns", ["(2[6-9]|3[0-5])% chance to gain a Flask Charge when you deal a Critical Strike","(4[4-9]|5[0-5])% increased Critical Strike Chance during Effect","(5[1-9]|60)% increased Evasion Rating during Effect","(9|1[0-4])% increased Movement Speed during Effect","(3[5-9])% less Duration`nImmunity to Bleeding and Corrupted Blood during Effect","(5[1-9]|60)% increased Armour during Effect","(5[2-9]|6[0-5])% reduced Effect of Curses on you during Effect"]),
                 Map("name", "Hit Flask", "patterns", ["3 Charges when you are Hit by an Enemy","(5[1-9]|60)% increased Armour during Effect","(5[2-9]|6[0-5])% reduced Effect of Curses on you during Effect","(9|1[0-4])% increased Movement Speed during Effect"])
             ]
         ))
@@ -26,9 +85,9 @@
             ]
         ))
 
-        profiles["alteration_aug_relative_demo"] := ProfileRegistry.BaseProfile(Map(
-            "id", "alteration_aug_relative_demo",
-            "name", "Alt + Aug Relative Demo",
+        profiles["alteration_aug_relative"] := ProfileRegistry.BaseProfile(Map(
+            "id", "alteration_aug_relative",
+            "name", "Alt + Aug Relative",
             "type", "alterationAugment",
             "targetAffixNum", 2,
             "clipboardDelay", 200,
@@ -37,7 +96,7 @@
                 Map("name", "Flask Speed", "patterns", ["(9|1[0-4])% increased Movement Speed during Effect","(5[1-9]|60)% increased Evasion Rating during Effect","(5[1-9]|60)% increased Armour during Effect"])
             ],
             "relativeAffixGroups", [
-                Map("name", "Relative Skip Example", "patterns", ["3 Charges when you are Hit by an Enemy"])
+                Map("name", "Relative Skip Example", "patterns", ["relative Modifiers that don't want to use Augmentation"])
             ]
         ))
 
@@ -49,21 +108,21 @@
             "clipboardDelay", 200,
             "groupSets", [
                 Map(
-                    "name", "Bow Core",
+                    "name", "Bow Cluster",
                     "affixGroups", [
-                        Map("name", "Bow Damage", "patterns", ["Vicious Skewering","Arcing Shot","Tempered Arrowheads","Broadside"])
+                        Map("name", "Bow All Passive", "patterns", ["Vicious Skewering","Arcing Shot","Tempered Arrowheads","Broadside","Smite the Weak","Heavy Hitter","Martial Prowess","Calamitous","Devastator","Fuel the Fight","Drive the Destruction","Feed the Fury"])
                     ]
                 ),
                 Map(
-                    "name", "Attack Core",
+                    "name", "Chaos Cluster",
                     "affixGroups", [
-                        Map("name", "Attack Damage", "patterns", ["Smite the Weak","Heavy Hitter","Martial Prowess","Calamitous","Devastator"])
+                        Map("name", "Chaos All Passive", "patterns", ["Grim Oath","Overwhelming Malice","Touch of Cruelty","Unwaveringly Evil","Unspeakable Gifts","Dark Ideation","Unholy Grace","Wicked Pall"])
                     ]
                 ),
                 Map(
-                    "name", "Sustain Core",
+                    "name", "Fire Cluster",
                     "affixGroups", [
-                        Map("name", "Sustain", "patterns", ["Fuel the Fight","Drive the Destruction","Feed the Fury"])
+                        Map("name", "Fire All Passive", "patterns", ["Sadist","Corrosive Elements","Doryani's Lesson","Disorienting Display","Prismatic Heart","Widespread Destruction","Master of Fire","Smoking Remains","Cremator","Burning Bright"])
                     ]
                 )
             ]

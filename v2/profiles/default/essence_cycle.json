@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "essence_cycle",
+  "name": "Essence",
+  "type": "essence",
+  "targetAffixNum": 1,
+  "clipboardDelay": 200,
+  "groupSets": [
+    {
+      "name": "Default",
+      "affixGroups": [
+        {
+          "name": "Resist",
+          "patterns": [
+            "(3[6-9]|4[0-8])% to Cold Resistance",
+            "(3[6-9]|4[0-8])% to fire Resistance"
+          ]
+        }
+      ],
+      "secondaryAffixGroups": [],
+      "relativeAffixGroups": []
+    }
+  ]
+}

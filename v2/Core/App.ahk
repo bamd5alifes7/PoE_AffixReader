@@ -1,6 +1,17 @@
 #Include Logger.ahk
 #Include Settings.ahk
 #Include AffixMatcher.ahk
+#Include JsonData.ahk
+#Include PatternValidator.ahk
+#Include ProfileCapabilities.ahk
+#Include ProfileInputValidator.ahk
+#Include ProfilePanelController.ahk
+#Include ProfilePresenter.ahk
+#Include LogPreviewReader.ahk
+#Include CoordinatePanelController.ahk
+#Include AppStateLoader.ahk
+#Include RunController.ahk
+#Include DashboardController.ahk
 #Include PoeClient.ahk
 #Include ProfileRegistry.ahk
 #Include ProfileOverrides.ahk
@@ -35,17 +46,16 @@ class PoeAffixReaderApp {
         this.logger := AffixLogger(this.settings["logFile"])
         this.matcher := AffixMatcher()
         this.client := PoeClient(this.settings, this.logger)
-        this.profiles := ProfileRegistry.Create()
-        ProfileOverrides.Apply(this.settings["iniPath"], this.profiles)
-        if !this.profiles.Has(this.activeProfileId) {
-            for profileId, _ in this.profiles {
-                this.activeProfileId := profileId
-                break
-            }
+        try {
+            AppStateLoader.LoadProfilesModel(this)
+            this.CreateMainWindow()
+            this.logger.Log("INFO", "app_initialized", Map("activeProfile", this.activeProfileId))
+            this.ShowWelcome()
+        } catch as err {
+            this.logger.LogError("app_initialize_failed", err)
+            MsgBox("Failed to initialize PoE_AffixReader v2.`r`n`r`n" err.Message, "Initialization Failed")
+            ExitApp
         }
-        this.CreateMainWindow()
-        this.logger.Log("INFO", "app_initialized", Map("activeProfile", this.activeProfileId))
-        this.ShowWelcome()
     }
 
     EnsureAdmin() {
@@ -105,22 +115,22 @@ class PoeAffixReaderApp {
         leftX := 30
         profileX := leftX
         stopRuleX := 354
-        topLabelY := 124
-        topBoxY := 144
-        topValueY := 170
-        topMetaY := 204
+        topLabelY := 104
+        topBoxY := 124
+        topValueY := 150
+        topMetaY := 184
         topCardH := 138
         profileW := 288
         stopRuleW := 496
-        statusLabelY := 300
-        statusBoxY := 320
-        statusValueY := 346
-        statusMetaY := 378
+        statusLabelY := 280
+        statusBoxY := 300
+        statusValueY := 326
+        statusMetaY := 358
         statusW := 820
         statusH := 86
-        guideLabelY := 430
-        guideBoxY := 450
-        guideStartY := 476
+        guideLabelY := 410
+        guideBoxY := 430
+        guideStartY := 456
         guideKeyX := 52
         guideTextX := 118
         guideRowGap := 29
@@ -199,6 +209,7 @@ class PoeAffixReaderApp {
         saveTargetButton := gui.AddButton("x+12 yp-3 w94 h28", "Save")
 
         this.controls["profileRelativeSkipCheckbox"] := gui.AddCheckbox("xm+16 y+16 w340 h20", "Skip Augment When Relative Match")
+        this.controls["profileAugmentOnZeroCheckbox"] := gui.AddCheckbox("x+18 yp w220 h20", "Augment On Zero")
         this.controls["profileTargetHint"] := gui.AddText("xm+16 y+10 w860 h32 c666666", "")
 
         gui.AddGroupBox("x30 y508 w860 h176", "Summary")
@@ -217,7 +228,7 @@ class PoeAffixReaderApp {
     }
 
     BuildCoordinatesTab(gui) {
-        gui.AddText("xm+16 y+40 w860", "Edit saved coordinates here, or capture the current mouse position inside PoE with the helper button.")
+        gui.AddText("xm+16 y+20 w860", "Edit saved coordinates here, or capture the current mouse position inside PoE with the helper button.")
         gui.AddText("xm+16 y+14 w180", "Currency / Action")
         gui.AddText("x+24 yp w120", "X")
         gui.AddText("x+24 yp w120", "Y")
@@ -247,8 +258,8 @@ class PoeAffixReaderApp {
     }
 
     BuildLogTab(gui) {
-        this.controls["logPath"] := gui.AddText("xm+16 y+40 w860", "")
-        this.controls["logPreview"] := gui.AddEdit("xm+16 y+10 w860 r22 ReadOnly -Wrap", "")
+        this.controls["logPath"] := gui.AddText("xm+16 y+20 w860", "")
+        this.controls["logPreview"] := gui.AddEdit("xm+16 y+8 w860 r22 ReadOnly -Wrap", "")
         refreshButton := gui.AddButton("xm+16 y+16 w140 h32 Default", "Refresh Log")
         homeButton := gui.AddButton("x+10 yp w160 h32", "Back To Home")
 
@@ -284,7 +295,7 @@ class PoeAffixReaderApp {
         selectedRow := 1
 
         for id, profile in this.profiles {
-            row := listView.Add("", profile["name"], this.TargetText(profile), this.ActiveGroupSetName(profile))
+            row := listView.Add("", profile["name"], ProfilePresenter.TargetText(profile), this.ActiveGroupSetName(profile))
             rowToId[row] := id
             if id = this.activeProfileId {
                 selectedRow := row
@@ -360,7 +371,7 @@ class PoeAffixReaderApp {
                 "Active profile: " profile["name"] "`r`n"
                 . "Type: " profile["type"] "`r`n"
                 . "Set: " this.ActiveGroupSetName(profile) "`r`n"
-                . "Target: " this.TargetText(profile)
+                . "Target: " ProfilePresenter.TargetText(profile)
             )
         }
         return true
@@ -415,7 +426,7 @@ class PoeAffixReaderApp {
 
         profile := this.profiles[profileId]
         activeSet := ProfileRegistry.ActivateGroupSet(profile, setIndex)
-        ProfileOverrides.SaveProfileGroupSets(this.settings["iniPath"], profile)
+        ProfileOverrides.SaveProfileGroupSets(this.settings["profileOverridesPath"], profile)
         this.logger.Log("INFO", "profile_groupset_selected", Map("profile", profileId, "setIndex", setIndex, "setName", activeSet["name"]))
         if profileId = this.activeProfileId {
             this.UpdateStatus("Active set changed to " activeSet["name"] " for " profile["name"] ".")
@@ -446,7 +457,7 @@ class PoeAffixReaderApp {
         profile["groupSets"].Push(ProfileRegistry.NormalizeGroupSet(newSet, "Set " nextIndex))
         profile["activeGroupSetIndex"] := profile["groupSets"].Length
         ProfileRegistry.ActivateGroupSet(profile, profile["activeGroupSetIndex"])
-        ProfileOverrides.SaveProfileGroupSets(this.settings["iniPath"], profile)
+        ProfileOverrides.SaveProfileGroupSets(this.settings["profileOverridesPath"], profile)
         this.logger.Log("INFO", "profile_groupset_added", Map("profile", profile["id"], "setIndex", profile["activeGroupSetIndex"]))
         this.UpdateStatus("Added set " this.ActiveGroupSetName(profile) " for " profile["name"] ".")
         this.RefreshAllViews()
@@ -474,7 +485,7 @@ class PoeAffixReaderApp {
 
         groupSet["name"] := setName
         profile["groupSets"][setIndex] := ProfileRegistry.NormalizeGroupSet(groupSet, "Set " setIndex)
-        ProfileOverrides.SaveProfileGroupSets(this.settings["iniPath"], profile)
+        ProfileOverrides.SaveProfileGroupSets(this.settings["profileOverridesPath"], profile)
         this.logger.Log("INFO", "profile_groupset_renamed", Map("profile", profile["id"], "setIndex", setIndex, "setName", setName))
         this.UpdateStatus("Renamed set to " setName " for " profile["name"] ".")
         this.RefreshAllViews()
@@ -508,48 +519,18 @@ class PoeAffixReaderApp {
             nextIndex := currentActiveIndex
         }
         ProfileRegistry.ActivateGroupSet(profile, nextIndex)
-        ProfileOverrides.SaveProfileGroupSets(this.settings["iniPath"], profile)
+        ProfileOverrides.SaveProfileGroupSets(this.settings["profileOverridesPath"], profile)
         this.logger.Log("INFO", "profile_groupset_removed", Map("profile", profile["id"], "setIndex", setIndex))
         this.UpdateStatus("Removed set " removingSet["name"] " from " profile["name"] ".")
         this.RefreshAllViews()
     }
 
     StartActiveProfile() {
-        if !this.profiles.Has(this.activeProfileId) {
-            MsgBox("No active profile is available.")
-            return
-        }
-
-        this.stopRequested := false
-        profile := this.profiles[this.activeProfileId]
-        this.UpdateStatus("Running profile " profile["name"] ". Press F12 or Stop to request a halt.")
-        this.RefreshAllViews()
-
-        try {
-            engine := CraftingEngine(profile, this.client, this.matcher, this.logger, this)
-            engine.Run()
-            this.logger.CheckSize()
-            if this.stopRequested {
-                this.UpdateStatus("Stop requested. Review the item and log before the next run.")
-            } else {
-                this.UpdateStatus("Profile run completed for " profile["name"] ".")
-            }
-        } catch as err {
-            this.logger.LogError("profile_failed", err, Map("profile", profile["id"]))
-            this.UpdateStatus("Run failed. Check the log for details.")
-            MsgBox("An error occurred during execution. See the log file for details.`r`n`r`n" err.Message)
-        } finally {
-            this.client.ResetHeldCurrency()
-            Send("{LShift Up}")
-            this.RefreshAllViews()
-        }
+        RunController.StartActiveProfile(this)
     }
 
     RequestStop() {
-        this.stopRequested := true
-        this.logger.Log("INFO", "stop_requested")
-        this.UpdateStatus("Stop requested. The current loop will halt after the in-flight step.")
-        this.RefreshAllViews()
+        RunController.RequestStop(this)
     }
 
     EditActiveAffixGroups() {
@@ -737,12 +718,39 @@ class PoeAffixReaderApp {
 
         OnSave(*) {
             SaveCurrentGroup()
+            validation := PatternValidator.ValidateGroupCollections([
+                Map("groupType", "Primary", "groups", primaryGroups),
+                Map("groupType", "Secondary", "groups", secondaryGroups),
+                Map("groupType", "Relative", "groups", relativeGroups)
+            ])
+            if !validation["ok"] {
+                switch validation["groupType"] {
+                    case "Secondary":
+                        groupTypePicker.Choose(2)
+                    case "Relative":
+                        groupTypePicker.Choose(3)
+                    default:
+                        groupTypePicker.Choose(1)
+                }
+                currentGroupType := validation["groupType"]
+                RefreshGroupList(validation["groupIndex"])
+                groupNameEdit.Value := validation["groupName"]
+                patternEdit.Focus()
+                this.UpdateStatus("Affix group validation failed. Fix the invalid regex before saving.")
+                MsgBox(
+                    "Invalid regex in " validation["groupType"] " group '" validation["groupName"] "' line " validation["patternIndex"] ".`r`n`r`n"
+                    . validation["pattern"] "`r`n`r`n"
+                    . validation["message"],
+                    "Invalid Pattern"
+                )
+                return
+            }
             activeSet["affixGroups"] := this.CloneGroups(primaryGroups)
             activeSet["secondaryAffixGroups"] := this.CloneGroups(secondaryGroups)
             activeSet["relativeAffixGroups"] := this.CloneGroups(relativeGroups)
             profile["groupSets"][profile["activeGroupSetIndex"]] := activeSet
             ProfileRegistry.ActivateGroupSet(profile, profile["activeGroupSetIndex"])
-            ProfileOverrides.SaveProfileGroupSets(this.settings["iniPath"], profile)
+            ProfileOverrides.SaveProfileGroupSets(this.settings["profileOverridesPath"], profile)
             this.logger.Log("INFO", "profile_affixgroups_saved", Map("profile", profile["id"], "primaryGroupCount", primaryGroups.Length, "secondaryGroupCount", secondaryGroups.Length, "relativeGroupCount", relativeGroups.Length))
             this.UpdateStatus("Affix groups saved for " profile["name"] ".")
             editor.Destroy()
@@ -823,78 +831,23 @@ class PoeAffixReaderApp {
     }
 
     SaveCoordinatesTool() {
-        if !this.client.EnsureWindowActive() {
-            return
-        }
-
-        MouseGetPos(&x, &y)
-        result := InputBox(
-            "Current coordinates: [" x ", " y "]`r`n"
-            . "Enter currency ID`r`n"
-            . "1=Alteration 2=Augmentation 3=Scouring 4=Regal 5=Transmutation 6=Alchemy 7=Chaos 8=Essence 9=CraftingButton",
-            "PoE_AffixReader v2 Coordinate Tool",
-            "w480 h220"
-        )
-        if result.Result != "OK" {
-            return
-        }
-
-        keyMap := Map(
-            "1", ["Alteration_X", "Alteration_Y"],
-            "2", ["Augmentation_X", "Augmentation_Y"],
-            "3", ["Scouring_X", "Scouring_Y"],
-            "4", ["Regal_X", "Regal_Y"],
-            "5", ["Transmutation_X", "Transmutation_Y"],
-            "6", ["Alchemy_X", "Alchemy_Y"],
-            "7", ["Chaos_X", "Chaos_Y"],
-            "8", ["Essence_X", "Essence_Y"],
-            "9", ["CraftingButton_X", "CraftingButton_Y"]
-        )
-
-        key := Trim(result.Value)
-        if !keyMap.Has(key) {
-            MsgBox("Please enter a value from 1 to 9.")
-            return
-        }
-
-        keys := keyMap[key]
-        SettingsLoader.SaveCoordinate(this.settings["iniPath"], keys[1], keys[2], x, y)
-        this.ReloadSettingsModel()
-        this.UpdateStatus("Coordinates updated for " StrReplace(keys[1], "_X") ".")
-        this.RefreshAllViews()
-        this.logger.Log("INFO", "coordinate_saved", Map("key", key, "x", x, "y", y))
-        MsgBox("Coordinates saved to setting.ini")
+        CoordinatePanelController.SaveCoordinatesTool(this)
     }
 
     SaveCoordinatesFromForm() {
-        for _, item in this.coordinateKeys {
-            keyX := item[2]
-            keyY := item[3]
-            valueX := Trim(this.controls["coordinateEdits"][keyX].Value)
-            valueY := Trim(this.controls["coordinateEdits"][keyY].Value)
-            if !RegExMatch(valueX, "^-?\d+$") || !RegExMatch(valueY, "^-?\d+$") {
-                MsgBox("Coordinates for " item[1] " must be whole numbers.")
-                return
-            }
-            SettingsLoader.SaveCoordinate(this.settings["iniPath"], keyX, keyY, valueX + 0, valueY + 0)
-        }
-
-        this.ReloadSettingsModel()
-        this.UpdateStatus("Coordinates saved from the dashboard.")
-        this.RefreshAllViews()
-        this.controls["coordinateStatus"].Text := "Saved to " this.settings["iniPath"]
+        CoordinatePanelController.SaveCoordinatesFromForm(this)
     }
 
     ReloadSettingsFromDisk() {
-        this.ReloadSettingsModel()
-        this.UpdateStatus("Settings reloaded from disk.")
-        this.RefreshAllViews()
-        this.controls["coordinateStatus"].Text := "Reloaded from " this.settings["iniPath"]
+        AppStateLoader.ReloadFromDisk(this)
     }
 
     ReloadSettingsModel() {
-        this.settings := SettingsLoader.Load(this.baseDir)
-        this.client := PoeClient(this.settings, this.logger)
+        AppStateLoader.ReloadSettingsModel(this)
+    }
+
+    LoadProfilesModel() {
+        AppStateLoader.LoadProfilesModel(this)
     }
 
     RefreshAllViews() {
@@ -908,406 +861,47 @@ class PoeAffixReaderApp {
     }
 
     RefreshHomeTab() {
-        profile := this.profiles[this.activeProfileId]
-        this.controls["homeProfileValue"].Text := profile["name"]
-        this.controls["homeProfileMeta"].Text := "Type: " profile["type"] "`r`nSet: " this.ActiveGroupSetName(profile) " | Primary groups: " profile["affixGroups"].Length
-        this.controls["homeStatusValue"].Text := this.HomeStatusTitle()
-        this.controls["homeStatusMeta"].Text := this.runStatus
-        this.controls["homeStopRuleValue"].Text := this.StopRuleSummary(profile)
-        this.controls["homeStopRuleMeta"].Text := this.StopRuleTargets(profile)
-        guideText := [
-            ["F4", "Start the active profile while focused on Path of Exile."],
-            ["F7", "Capture the current mouse position into setting.ini."],
-            ["F8", "Open the profile picker."],
-            ["F9", "Bring this dashboard back to the front."],
-            ["F10", "Edit the active set's primary affix groups."],
-            ["F12", "Request stop during a running loop."]
-        ]
-
-        loop guideText.Length {
-            this.controls["homeGuideKeys"][A_Index].Text := guideText[A_Index][1]
-            this.controls["homeGuideTexts"][A_Index].Text := guideText[A_Index][2]
-        }
+        DashboardController.RefreshHomeTab(this)
     }
 
     RefreshProfileList() {
-        if !this.controls.Has("profileList") {
-            return
-        }
-
-        listView := this.controls["profileList"]
-        focusedRow := listView.GetNext(0, "F")
-        selectedProfileId := focusedRow && this.profileRowToId.Has(focusedRow) ? this.profileRowToId[focusedRow] : this.activeProfileId
-
-        listView.Delete()
-        this.profileRowToId := Map()
-        selectedRow := 1
-        rowIndex := 0
-
-        for profileId, profile in this.profiles {
-            rowIndex += 1
-            row := listView.Add("", profile["name"], this.TargetText(profile), this.ActiveGroupSetName(profile), this.AffixGroupSummary(profile))
-            this.profileRowToId[row] := profileId
-            if profileId = selectedProfileId {
-                selectedRow := row
-            }
-        }
-
-        if rowIndex > 0 {
-            listView.Modify(selectedRow, "Select Focus Vis")
-        }
-        this.RefreshSelectedProfileSetPicker()
-        this.UpdateSelectedProfileDetails()
+        ProfilePanelController.RefreshProfileList(this)
     }
 
     RefreshSelectedProfileSetPicker() {
-        if !this.controls.Has("profileSetPicker") {
-            return
-        }
-
-        profile := this.GetSelectedProfile()
-        picker := this.controls["profileSetPicker"]
-        picker.Delete()
-        if !IsObject(profile) {
-            return
-        }
-
-        names := []
-        for _, groupSet in profile["groupSets"] {
-            names.Push(groupSet["name"])
-        }
-        picker.Add(names)
-        picker.Choose(profile["activeGroupSetIndex"])
-        this.RefreshSelectedProfileTargetControls(profile)
+        ProfilePanelController.RefreshSelectedProfileSetPicker(this)
     }
 
     UpdateSelectedProfileDetails() {
-        if !this.controls.Has("profileList") {
-            return
-        }
-        profile := this.GetSelectedProfile()
-        if !IsObject(profile) {
-            return
-        }
-        setIndex := this.SelectedSetIndex(profile)
-        previewSet := ProfileRegistry.NormalizeGroupSet(profile["groupSets"][setIndex], "Set " setIndex)
-        detailText := ""
-        if profile["id"] = this.activeProfileId {
-            detailText := "This is the active profile."
-            if setIndex = profile["activeGroupSetIndex"] {
-                detailText .= " This set is active."
-            } else {
-                detailText .= " Active set: " this.ActiveGroupSetName(profile) "."
-            }
-            detailText .= "`r`n`r`n"
-        }
-        detailText .=
-        (
-            "Primary affix groups: " previewSet["affixGroups"].Length "`r`n"
-            . "Secondary affix groups: " previewSet["secondaryAffixGroups"].Length "`r`n"
-            . "Relative affix groups: " previewSet["relativeAffixGroups"].Length "`r`n"
-            . "Skip augment on relative match: " (profile["skipAugmentationWhenRelativeMatch"] ? "On" : "Off") "`r`n"
-            . "Clipboard delay: " profile["clipboardDelay"] " ms"
-        )
-        this.controls["profileDetails"].Value := detailText
-        this.RefreshSelectedProfileTargetControls(profile)
+        ProfilePanelController.UpdateSelectedProfileDetails(this)
     }
 
     RefreshCoordinateForm() {
-        if !this.controls.Has("coordinateEdits") {
-            return
-        }
-        for _, item in this.coordinateKeys {
-            keyX := item[2]
-            keyY := item[3]
-            this.controls["coordinateEdits"][keyX].Value := this.settings[keyX]
-            this.controls["coordinateEdits"][keyY].Value := this.settings[keyY]
-        }
-        this.controls["coordinateStatus"].Text := "Editing values from " this.settings["iniPath"]
+        CoordinatePanelController.RefreshCoordinateForm(this)
     }
 
     RefreshLogPreview() {
-        if !this.controls.Has("logPreview") {
-            return
-        }
-        this.controls["logPath"].Text := "Log file: " this.settings["logFile"]
-        this.controls["logPreview"].Value := this.ReadLogPreview()
-    }
-
-    ReadLogPreview(maxLines := 40, maxChars := 6000) {
-        if !FileExist(this.settings["logFile"]) {
-            return "Log file not found yet. Run a profile or wait for the first log write."
-        }
-
-        try {
-            text := FileRead(this.settings["logFile"], "UTF-8")
-        } catch as err {
-            return "Unable to read log file.`r`n" err.Message
-        }
-
-        if StrLen(text) > maxChars {
-            text := SubStr(text, StrLen(text) - maxChars + 1)
-        }
-
-        lines := StrSplit(text, "`n", "`r")
-        if lines.Length > maxLines {
-            startIndex := lines.Length - maxLines + 1
-            preview := ""
-            loop maxLines {
-                if A_Index > 1 {
-                    preview .= "`r`n"
-                }
-                preview .= lines[startIndex + A_Index - 1]
-            }
-            return preview
-        }
-        return text
+        DashboardController.RefreshLogPreview(this)
     }
 
     UpdateStatus(statusText) {
         this.runStatus := statusText
         if this.controls.Has("homeStatusValue") {
-            this.controls["homeStatusValue"].Text := this.HomeStatusTitle()
+            this.controls["homeStatusValue"].Text := ProfilePresenter.HomeStatusTitle(this.runStatus)
         }
         if this.controls.Has("homeStatusMeta") {
             this.controls["homeStatusMeta"].Text := this.runStatus
         }
     }
 
-    HomeStatusTitle() {
-        status := StrLower(this.runStatus)
-        if InStr(status, "running") {
-            return "Running"
-        }
-        if InStr(status, "failed") {
-            return "Needs Attention"
-        }
-        if InStr(status, "stop requested") {
-            return "Stopping"
-        }
-        if InStr(status, "completed") {
-            return "Completed"
-        }
-        return "Ready"
-    }
-
-    TargetText(profile) {
-        text := "Primary " profile["targetAffixNum"]
-        if profile["targetSecondAffixNum"] > 0 {
-            text .= " / Secondary " profile["targetSecondAffixNum"]
-        }
-        return text
-    }
-
-    TargetEditable(profile) {
-        type := profile["type"]
-        return type != "alteration" && type != "alterationAugment"
-    }
-
-    SecondaryTargetEditable(profile) {
-        return this.TargetEditable(profile) && profile["secondaryAffixGroups"].Length > 0
-    }
-
-    RelativeSkipEditable(profile) {
-        return profile["type"] = "alterationAugment" && profile["relativeAffixGroups"].Length > 0
-    }
-
     RefreshSelectedProfileTargetControls(profile := "") {
-        if !this.controls.Has("profilePrimaryTargetEdit") {
-            return
-        }
-
-        primaryEdit := this.controls["profilePrimaryTargetEdit"]
-        secondaryEdit := this.controls["profileSecondaryTargetEdit"]
-        relativeSkipCheckbox := this.controls["profileRelativeSkipCheckbox"]
-        hint := this.controls["profileTargetHint"]
-        if !IsObject(profile) {
-            primaryEdit.Value := ""
-            secondaryEdit.Value := ""
-            primaryEdit.Opt("+Disabled")
-            secondaryEdit.Opt("+Disabled")
-            relativeSkipCheckbox.Value := 0
-            relativeSkipCheckbox.Opt("+Disabled")
-            hint.Text := ""
-            return
-        }
-
-        primaryEdit.Value := profile["targetAffixNum"]
-        secondaryEdit.Value := profile["targetSecondAffixNum"]
-        relativeSkipCheckbox.Value := profile["skipAugmentationWhenRelativeMatch"] ? 1 : 0
-
-        if this.TargetEditable(profile) {
-            primaryEdit.Opt("-Disabled")
-            if this.SecondaryTargetEditable(profile) {
-                secondaryEdit.Opt("-Disabled")
-                hint.Text := "Target values are configurable for this profile."
-            } else {
-                secondaryEdit.Opt("+Disabled")
-                hint.Text := "Only the primary target is configurable for this profile."
-            }
-        } else {
-            primaryEdit.Opt("+Disabled")
-            secondaryEdit.Opt("+Disabled")
-            hint.Text := "This profile's target is fixed because its crafting flow depends on it."
-        }
-
-        if this.RelativeSkipEditable(profile) {
-            relativeSkipCheckbox.Opt("-Disabled")
-            if hint.Text = "" {
-                hint.Text := "Relative-match behavior is configurable for this profile."
-            } else {
-                hint.Text .= " Relative-match behavior is also configurable."
-            }
-        } else {
-            relativeSkipCheckbox.Opt("+Disabled")
-        }
+        ProfilePanelController.RefreshSelectedProfileTargetControls(this, profile)
     }
 
     SaveSelectedProfileTargets() {
-        profile := this.GetSelectedProfile()
-        if !IsObject(profile) {
-            MsgBox("Please select a profile first.")
-            return
-        }
-        targetEditable := this.TargetEditable(profile)
-        relativeEditable := this.RelativeSkipEditable(profile)
-        if !targetEditable && !relativeEditable {
-            MsgBox("This profile does not have editable target or relative-match behavior.")
-            return
-        }
-
-        primaryTarget := profile["targetAffixNum"]
-        secondaryTarget := profile["targetSecondAffixNum"]
-        if targetEditable {
-            primaryValue := Trim(this.controls["profilePrimaryTargetEdit"].Value)
-            secondaryValue := Trim(this.controls["profileSecondaryTargetEdit"].Value)
-            if !RegExMatch(primaryValue, "^\d+$") {
-                MsgBox("Primary target must be a whole number.")
-                return
-            }
-            if secondaryValue = "" {
-                secondaryValue := "0"
-            }
-            if !RegExMatch(secondaryValue, "^\d+$") {
-                MsgBox("Secondary target must be a whole number.")
-                return
-            }
-
-            primaryTarget := primaryValue + 0
-            secondaryTarget := secondaryValue + 0
-            if primaryTarget < 1 || primaryTarget > 3 {
-                MsgBox("Primary target must be between 1 and 3.")
-                return
-            }
-            if secondaryTarget < 0 || secondaryTarget > 3 {
-                MsgBox("Secondary target must be between 0 and 3.")
-                return
-            }
-            if !this.SecondaryTargetEditable(profile) {
-                secondaryTarget := 0
-            }
-        }
-
-        profile["targetAffixNum"] := primaryTarget
-        profile["targetSecondAffixNum"] := secondaryTarget
-        ProfileOverrides.SaveTargetOverrides(this.settings["iniPath"], profile)
-        if relativeEditable {
-            profile["skipAugmentationWhenRelativeMatch"] := this.controls["profileRelativeSkipCheckbox"].Value = 1
-            ProfileOverrides.SaveBehaviorOverrides(this.settings["iniPath"], profile)
-        }
-        this.logger.Log("INFO", "profile_targets_saved", Map("profile", profile["id"], "targetAffixNum", primaryTarget, "targetSecondAffixNum", secondaryTarget, "skipAugmentationWhenRelativeMatch", profile["skipAugmentationWhenRelativeMatch"] ? 1 : 0))
-        this.UpdateStatus("Profile rules updated for " profile["name"] ".")
-        this.RefreshAllViews()
+        ProfilePanelController.SaveSelectedProfileTargets(this)
     }
 
-    StopRuleSummary(profile) {
-        summary := profile["targetAffixNum"] " Primary"
-        if profile["targetSecondAffixNum"] > 0 {
-            summary .= " + " profile["targetSecondAffixNum"] " Secondary"
-        }
-        return summary
-    }
-
-    StopRuleTargets(profile, separator := "`r`n") {
-        parts := []
-        primaryNames := this.GroupNameList(profile["affixGroups"])
-        if primaryNames != "" {
-            parts.Push("Primary: " primaryNames)
-        }
-
-        secondaryNames := this.GroupNameList(profile["secondaryAffixGroups"])
-        if secondaryNames != "" {
-            parts.Push("Secondary: " secondaryNames)
-        }
-
-        if parts.Length = 0 {
-            return "No named target groups configured."
-        }
-
-        text := ""
-        for index, part in parts {
-            if index > 1 {
-                text .= separator
-            }
-            text .= part
-        }
-        return text
-    }
-
-    AffixGroupSummary(profile, separator := " | ") {
-        return this.AffixGroupSummaryForSet(this.ActiveGroupSet(profile), separator)
-    }
-
-    AffixGroupSummaryForSet(groupSet, separator := " | ") {
-        parts := []
-
-        primaryNames := this.GroupNameList(groupSet["affixGroups"])
-        if primaryNames != "" {
-            parts.Push("P: " primaryNames)
-        }
-
-        secondaryNames := this.GroupNameList(groupSet["secondaryAffixGroups"])
-        if secondaryNames != "" {
-            parts.Push("S: " secondaryNames)
-        }
-
-        relativeNames := this.GroupNameList(groupSet["relativeAffixGroups"])
-        if relativeNames != "" {
-            parts.Push("R: " relativeNames)
-        }
-
-        if parts.Length = 0 {
-            return "-"
-        }
-
-        text := ""
-        for index, part in parts {
-            if index > 1 {
-                text .= separator
-            }
-            text .= part
-        }
-        return text
-    }
-
-    GroupNameList(groups) {
-        if !IsObject(groups) || groups.Length = 0 {
-            return ""
-        }
-
-        names := ""
-        for index, group in groups {
-            groupName := group is Map ? group["name"] : "Group " index
-            if Trim(groupName) = "" {
-                groupName := "Group " index
-            }
-            if names != "" {
-                names .= ", "
-            }
-            names .= groupName
-        }
-        return names
-    }
 }
 
 class ProfileOverridesGui {
