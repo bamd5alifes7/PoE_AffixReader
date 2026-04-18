@@ -9,6 +9,7 @@
 #Include ProfilePresenter.ahk
 #Include LogPreviewReader.ahk
 #Include CoordinatePanelController.ahk
+#Include ProfileGroupSets.ahk
 #Include AppStateLoader.ahk
 #Include RunController.ahk
 #Include DashboardController.ahk
@@ -426,7 +427,7 @@ class PoeAffixReaderApp {
 
         profile := this.profiles[profileId]
         activeSet := ProfileRegistry.ActivateGroupSet(profile, setIndex)
-        ProfileOverrides.SaveProfileGroupSets(this.settings["profileOverridesPath"], profile)
+        ProfileGroupSets.Save(this.settings["profileGroupSetsPath"], profile)
         this.logger.Log("INFO", "profile_groupset_selected", Map("profile", profileId, "setIndex", setIndex, "setName", activeSet["name"]))
         if profileId = this.activeProfileId {
             this.UpdateStatus("Active set changed to " activeSet["name"] " for " profile["name"] ".")
@@ -457,7 +458,7 @@ class PoeAffixReaderApp {
         profile["groupSets"].Push(ProfileRegistry.NormalizeGroupSet(newSet, "Set " nextIndex))
         profile["activeGroupSetIndex"] := profile["groupSets"].Length
         ProfileRegistry.ActivateGroupSet(profile, profile["activeGroupSetIndex"])
-        ProfileOverrides.SaveProfileGroupSets(this.settings["profileOverridesPath"], profile)
+        ProfileGroupSets.Save(this.settings["profileGroupSetsPath"], profile)
         this.logger.Log("INFO", "profile_groupset_added", Map("profile", profile["id"], "setIndex", profile["activeGroupSetIndex"]))
         this.UpdateStatus("Added set " this.ActiveGroupSetName(profile) " for " profile["name"] ".")
         this.RefreshAllViews()
@@ -485,7 +486,7 @@ class PoeAffixReaderApp {
 
         groupSet["name"] := setName
         profile["groupSets"][setIndex] := ProfileRegistry.NormalizeGroupSet(groupSet, "Set " setIndex)
-        ProfileOverrides.SaveProfileGroupSets(this.settings["profileOverridesPath"], profile)
+        ProfileGroupSets.Save(this.settings["profileGroupSetsPath"], profile)
         this.logger.Log("INFO", "profile_groupset_renamed", Map("profile", profile["id"], "setIndex", setIndex, "setName", setName))
         this.UpdateStatus("Renamed set to " setName " for " profile["name"] ".")
         this.RefreshAllViews()
@@ -519,7 +520,7 @@ class PoeAffixReaderApp {
             nextIndex := currentActiveIndex
         }
         ProfileRegistry.ActivateGroupSet(profile, nextIndex)
-        ProfileOverrides.SaveProfileGroupSets(this.settings["profileOverridesPath"], profile)
+        ProfileGroupSets.Save(this.settings["profileGroupSetsPath"], profile)
         this.logger.Log("INFO", "profile_groupset_removed", Map("profile", profile["id"], "setIndex", setIndex))
         this.UpdateStatus("Removed set " removingSet["name"] " from " profile["name"] ".")
         this.RefreshAllViews()
@@ -750,7 +751,7 @@ class PoeAffixReaderApp {
             activeSet["relativeAffixGroups"] := this.CloneGroups(relativeGroups)
             profile["groupSets"][profile["activeGroupSetIndex"]] := activeSet
             ProfileRegistry.ActivateGroupSet(profile, profile["activeGroupSetIndex"])
-            ProfileOverrides.SaveProfileGroupSets(this.settings["profileOverridesPath"], profile)
+            ProfileGroupSets.Save(this.settings["profileGroupSetsPath"], profile)
             this.logger.Log("INFO", "profile_affixgroups_saved", Map("profile", profile["id"], "primaryGroupCount", primaryGroups.Length, "secondaryGroupCount", secondaryGroups.Length, "relativeGroupCount", relativeGroups.Length))
             this.UpdateStatus("Affix groups saved for " profile["name"] ".")
             editor.Destroy()

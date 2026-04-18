@@ -93,6 +93,10 @@
             if hasRarityHeader && (!requireChange || attempt >= sameStateFallbackAfter) {
                 fallbackText := text
                 fallbackSnapshot := lastSnapshot
+                if requireChange && sameAsOld && attempt >= sameStateFallbackAfter {
+                    this.logger.Log("DEBUG", "clipboard_capture_fallback_same_state", fallbackSnapshot)
+                    return fallbackText
+                }
             }
 
             Sleep(retrySleepMs)

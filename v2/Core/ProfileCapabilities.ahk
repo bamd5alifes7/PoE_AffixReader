@@ -1,7 +1,6 @@
 class ProfileCapabilities {
     static TargetEditable(profile) {
-        type := profile["type"]
-        return type != "alteration" && type != "alterationAugment"
+        return true
     }
 
     static SecondaryTargetEditable(profile) {
@@ -33,7 +32,7 @@ class ProfileCapabilities {
                 ? "Target values are configurable for this profile."
                 : "Only the primary target is configurable for this profile."
         } else {
-            hint := "This profile's target is fixed because its crafting flow depends on it."
+            hint := "Target values are not configurable for this profile."
         }
 
         if capabilities["relativeEditable"] {

@@ -8,6 +8,7 @@ class AppStateLoader {
     static LoadProfilesModel(app) {
         previousProfileId := app.activeProfileId
         profiles := ProfileRegistry.Create(app.baseDir)
+        ProfileGroupSets.Apply(app.settings["profileGroupSetsPath"], profiles, app.settings["profileOverridesPath"])
         ProfileOverrides.Apply(app.settings["profileOverridesPath"], profiles)
         validation := ProfileInputValidator.ValidateProfiles(profiles)
         if !validation["ok"] {

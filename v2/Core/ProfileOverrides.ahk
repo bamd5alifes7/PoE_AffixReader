@@ -9,14 +9,6 @@ class ProfileOverrides {
             }
 
             stored := profileData[id]
-            if stored.Has("groupSets") && stored["groupSets"] is Array && stored["groupSets"].Length > 0 {
-                groupSets := []
-                for _, groupSet in stored["groupSets"] {
-                    groupSets.Push(ProfileRegistry.NormalizeGroupSet(groupSet))
-                }
-                profile["groupSets"] := groupSets
-            }
-
             if stored.Has("targetAffixNum") {
                 profile["targetAffixNum"] := Max(1, stored["targetAffixNum"] + 0)
             }
@@ -30,17 +22,8 @@ class ProfileOverrides {
                 profile["augmentOnZero"] := stored["augmentOnZero"] ? true : false
             }
 
-            activeIndex := stored.Has("activeGroupSetIndex") ? stored["activeGroupSetIndex"] + 0 : 1
-            ProfileRegistry.ActivateGroupSet(profile, activeIndex)
+            ProfileRegistry.ActivateGroupSet(profile, profile["activeGroupSetIndex"])
         }
-    }
-
-    static SaveProfileGroupSets(overridesPath, profile) {
-        document := ProfileOverrides.LoadDocument(overridesPath)
-        entry := ProfileOverrides.EnsureProfileEntry(document, profile["id"])
-        entry["groupSets"] := ProfileOverrides.CloneGroupSets(profile["groupSets"])
-        entry["activeGroupSetIndex"] := profile["activeGroupSetIndex"]
-        JsonData.SaveFile(overridesPath, document)
     }
 
     static SaveTargetOverrides(overridesPath, profile) {
@@ -63,6 +46,7 @@ class ProfileOverrides {
         if FileExist(overridesPath) {
             loaded := JsonData.LoadFile(overridesPath)
             if loaded is Map && loaded.Has("profiles") && loaded["profiles"] is Map {
+                ProfileOverrides.NormalizeSchemaVersion(loaded)
                 return loaded
             }
         }
@@ -80,36 +64,9 @@ class ProfileOverrides {
         return profiles[profileId]
     }
 
-    static CloneGroupSets(groupSets) {
-        cloned := []
-        for _, groupSet in groupSets {
-            normalizedSet := ProfileRegistry.NormalizeGroupSet(groupSet)
-            cloned.Push(Map(
-                "name", normalizedSet["name"],
-                "affixGroups", ProfileOverrides.CloneGroups(normalizedSet["affixGroups"]),
-                "secondaryAffixGroups", ProfileOverrides.CloneGroups(normalizedSet["secondaryAffixGroups"]),
-                "relativeAffixGroups", ProfileOverrides.CloneGroups(normalizedSet["relativeAffixGroups"])
-            ))
+    static NormalizeSchemaVersion(document) {
+        if !document.Has("schemaVersion") || Type(document["schemaVersion"]) != "Integer" {
+            document["schemaVersion"] := 1
         }
-        return cloned
-    }
-
-    static CloneGroups(groups) {
-        cloned := []
-        for _, group in groups {
-            normalized := group is Map ? group : Map("name", "", "patterns", group)
-            patterns := []
-            sourcePatterns := normalized.Has("patterns") ? normalized["patterns"] : []
-            if sourcePatterns is Array {
-                for _, pattern in sourcePatterns {
-                    patterns.Push(pattern)
-                }
-            }
-            cloned.Push(Map(
-                "name", normalized.Has("name") ? normalized["name"] : "",
-                "patterns", patterns
-            ))
-        }
-        return cloned
     }
 }
