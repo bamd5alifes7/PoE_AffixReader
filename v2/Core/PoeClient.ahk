@@ -70,7 +70,7 @@
 
             text := A_Clipboard
             rarity := this.GetItemRarity(text)
-            hasRarityHeader := InStr(text, "Rarity:")
+            hasRarityHeader := this.HasItemRarityHeader(text)
             sameAsOld := (oldText != "" && text = oldText)
             changed := !sameAsOld
             lastSnapshot := Map(
@@ -86,11 +86,11 @@
             )
             this.logger.Log("DEBUG", "clipboard_capture_attempt", lastSnapshot)
 
-            if hasRarityHeader && (!requireChange || !sameAsOld) {
+            if hasRarityHeader && rarity != -1 && (!requireChange || !sameAsOld) {
                 return text
             }
 
-            if hasRarityHeader && (!requireChange || attempt >= sameStateFallbackAfter) {
+            if hasRarityHeader && rarity != -1 && (!requireChange || attempt >= sameStateFallbackAfter) {
                 fallbackText := text
                 fallbackSnapshot := lastSnapshot
                 if requireChange && sameAsOld && attempt >= sameStateFallbackAfter {
@@ -111,20 +111,56 @@
         throw Error("Failed to capture a new valid item state from clipboard after the action. Check the log for clipboard previews and retry details.")
     }
 
+    HasItemRarityHeader(text) {
+        zhHeader := this.ChineseRarityHeader()
+        for _, line in StrSplit(text, "`n", "`r") {
+            line := Trim(line)
+            if InStr(line, "Rarity:") = 1 || InStr(line, zhHeader) = 1 {
+                return true
+            }
+        }
+        return false
+    }
+
     GetItemRarity(text) {
-        if InStr(text, "Rarity: Normal") {
-            return 0
-        }
-        if InStr(text, "Rarity: Magic") {
-            return 1
-        }
-        if InStr(text, "Rarity: Rare") {
-            return 2
-        }
-        if InStr(text, "Rarity: Unique") {
-            return 3
+        zhHeader := this.ChineseRarityHeader()
+        zhNormal := Chr(26222) Chr(36890)
+        zhMagic := Chr(39764) Chr(27861)
+        zhRare := Chr(31232) Chr(26377)
+        zhUniqueTraditional := Chr(20659) Chr(22855)
+        zhUniqueSimplified := Chr(20256) Chr(22855)
+        for _, line in StrSplit(text, "`n", "`r") {
+            line := Trim(line)
+            if InStr(line, "Rarity:") = 1 {
+                switch Trim(SubStr(line, StrLen("Rarity:") + 1)) {
+                    case "Normal":
+                        return 0
+                    case "Magic":
+                        return 1
+                    case "Rare":
+                        return 2
+                    case "Unique":
+                        return 3
+                }
+            }
+            if InStr(line, zhHeader) = 1 {
+                switch Trim(SubStr(line, StrLen(zhHeader) + 1)) {
+                    case zhNormal:
+                        return 0
+                    case zhMagic:
+                        return 1
+                    case zhRare:
+                        return 2
+                    case zhUniqueTraditional, zhUniqueSimplified:
+                        return 3
+                }
+            }
         }
         return -1
+    }
+
+    ChineseRarityHeader() {
+        return Chr(31232) Chr(26377) Chr(24230) ":"
     }
 
     UseCurrencyOnItem(currencyName, profile) {

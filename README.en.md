@@ -20,6 +20,7 @@ It now includes:
 ## Before You Start
 
 - The app works by copying the current item's text before and after each crafting action, then matching that text against the configured affix patterns.
+- English and Traditional Chinese item rarity headers are supported. Affix patterns still need to match the copied item text language, so use Chinese patterns when your game client copies Chinese item text.
 - Close or disable tools that may conflict with mouse/keyboard automation or item-copy behavior before running it.
 - Only run one crafting workflow at a time.
 - The default coordinate values were tuned for a 2560x1440 setup. If your layout is different, recapture coordinates before starting.

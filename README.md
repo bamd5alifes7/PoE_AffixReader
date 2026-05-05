@@ -11,6 +11,7 @@ PoE_AffixReader v2 is an AutoHotkey v2-based Path of Exile crafting helper that 
 - profile system with built-in and user overrides
 - group sets for switching between target packages
 - editable primary / secondary / relative affix groups
+- English and Traditional Chinese copied item rarity support
 - log output for troubleshooting and tuning
 
 ## Quick Start
