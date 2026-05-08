@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "id": "focused_simplex_regal",
+  "name": "F/S Regal",
+  "type": "transmuteRegal",
+  "targetAffixNum": 1,
+  "clipboardDelay": 200,
+  "groupSets": [
+    {
+      "name": "Focused Amulet",
+      "affixGroups": [
+        {
+          "name": "Target Mod",
+          "patterns": [
+            "to Level of all Skill Gems"
+          ]
+        }
+      ],
+      "secondaryAffixGroups": [],
+      "relativeAffixGroups": []
+    },
+    {
+      "name": "Simplex Amulet",
+      "affixGroups": [
+        {
+          "name": "Target Mod",
+          "patterns": [
+            "to Level of all Skill Gems"
+          ]
+        }
+      ],
+      "secondaryAffixGroups": [],
+      "relativeAffixGroups": []
+    }
+  ]
+}

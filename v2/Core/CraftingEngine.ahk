@@ -93,6 +93,10 @@
             return false
         }
 
+        if type = "transmuteRegal" && rarity != 2 {
+            return false
+        }
+
         if rarity != 2 {
             return false
         }
@@ -137,6 +141,18 @@
                     return "alchemy"
                 }
                 return "scouringAlchemy"
+
+            case "transmuteRegal":
+                if rarity = 0 {
+                    return "transmutation"
+                }
+                if rarity = 1 {
+                    return "regal"
+                }
+                if rarity = 2 || rarity = 3 {
+                    return "scouringTransmutation"
+                }
+                throw Error("Unexpected item rarity for transmute regal flow: " rarity)
 
             case "crafting":
                 if rarity != 2 {
@@ -212,6 +228,8 @@
                 this.client.UseScouringAlchemy(this.profile)
             case "scouringTransmutation":
                 this.client.UseScouringTransmutation(this.profile)
+            case "regal":
+                this.client.UseCurrencyOnItem("Regal", this.profile)
             case "scouringEssence":
                 this.client.UseCurrencyOnItem("Scouring", this.profile)
                 this.client.RandomSleep(this.profile)

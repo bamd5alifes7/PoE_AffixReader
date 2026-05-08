@@ -185,36 +185,39 @@ class PoeAffixReaderApp {
     }
 
     BuildProfilesTab(gui) {
-        gui.AddText("xm+16 y+20 w860", "Choose which crafting profile is active. Double-click a row to activate that profile immediately.")
-        profileList := gui.AddListView("xm+16 y+10 w860 r7 Grid -Multi", ["Profile", "Target", "Set", "Groups"])
+        gui.SetFont("s9 w700 cRed", "Segoe UI")
+        gui.AddText("xm+16 y+20 w150", "Double-click a profile")
+        gui.SetFont("s9 w400 cDefault", "Segoe UI")
+        gui.AddText("x+0 yp w710", "to activate it. Adjust target and augment behavior below, then choose a set or edit its affixes.")
+        profileList := gui.AddListView("xm+16 y+8 w860 r6 Grid -Multi", ["Profile", "Target", "Set", "Groups"])
         profileList.ModifyCol(1, 180)
         profileList.ModifyCol(2, 130)
         profileList.ModifyCol(3, 120)
         profileList.ModifyCol(4, 390)
         this.controls["profileList"] := profileList
-        gui.SetFont("s9 w400", "Segoe UI")
-        useButton := gui.AddButton("xm+16 y+12 w140 h32 Default", "Use Profile")
-        applySetButton := gui.AddButton("x+10 yp w120 h32", "Use Set")
-        editButton := gui.AddButton("x+10 yp w130 h32", "Edit Affixes")
 
-        gui.AddText("xm+16 y+18 w60 h20", "Set")
-        this.controls["profileSetPicker"] := gui.AddDropDownList("x+8 yp-3 w220 Choose1", [])
-        addSetButton := gui.AddButton("x+10 yp w90 h28", "Add")
-        renameSetButton := gui.AddButton("x+8 yp w90 h28", "Rename")
-        removeSetButton := gui.AddButton("x+8 yp w90 h28", "Remove")
+        gui.AddGroupBox("x30 y296 w860 h116", "Profile Rules")
+        gui.AddText("x46 y324 w90 h20", "Primary Target")
+        this.controls["profilePrimaryTargetEdit"] := gui.AddEdit("x144 y321 w60 Number", "")
+        gui.AddText("x226 y324 w104 h20", "Secondary Target")
+        this.controls["profileSecondaryTargetEdit"] := gui.AddEdit("x340 y321 w60 Number", "")
+        saveTargetButton := gui.AddButton("x420 y319 w94 h28", "Save Rules")
 
-        gui.AddText("xm+16 y+18 w90 h20", "Primary Target")
-        this.controls["profilePrimaryTargetEdit"] := gui.AddEdit("x+8 yp-3 w60 Number", "")
-        gui.AddText("x+20 yp+3 w104 h20", "Secondary Target")
-        this.controls["profileSecondaryTargetEdit"] := gui.AddEdit("x+8 yp-3 w60 Number", "")
-        saveTargetButton := gui.AddButton("x+12 yp-3 w94 h28", "Save")
+        this.controls["profileRelativeSkipCheckbox"] := gui.AddCheckbox("x46 y356 w300 h20", "Skip Augment When Relative Match")
+        this.controls["profileAugmentOnZeroCheckbox"] := gui.AddCheckbox("x370 y356 w180 h20", "Augment On Zero")
+        this.controls["profileTargetHint"] := gui.AddText("x46 y382 w824 h20 c666666", "")
 
-        this.controls["profileRelativeSkipCheckbox"] := gui.AddCheckbox("xm+16 y+16 w340 h20", "Skip Augment When Relative Match")
-        this.controls["profileAugmentOnZeroCheckbox"] := gui.AddCheckbox("x+18 yp w220 h20", "Augment On Zero")
-        this.controls["profileTargetHint"] := gui.AddText("xm+16 y+10 w860 h32 c666666", "")
+        gui.AddGroupBox("x30 y424 w860 h72", "Sets")
+        gui.AddText("x46 y454 w60 h20", "Set")
+        this.controls["profileSetPicker"] := gui.AddDropDownList("x92 y451 w250 Choose1", [])
+        applySetButton := gui.AddButton("x360 y449 w90 h28", "Use Set")
+        addSetButton := gui.AddButton("x466 y449 w80 h28", "Add")
+        renameSetButton := gui.AddButton("x558 y449 w90 h28", "Rename")
+        removeSetButton := gui.AddButton("x660 y449 w90 h28", "Remove")
 
-        gui.AddGroupBox("x30 y508 w860 h176", "Summary")
-        this.controls["profileDetails"] := gui.AddEdit("x44 y534 w832 h136 ReadOnly VScroll -Wrap", "")
+        gui.AddGroupBox("x30 y508 w860 h176", "Affix Groups")
+        editButton := gui.AddButton("x46 y534 w130 h30", "Edit Affixes")
+        this.controls["profileDetails"] := gui.AddEdit("x196 y534 w680 h136 ReadOnly VScroll -Wrap", "")
 
         profileList.OnEvent("ItemFocus", (*) => this.UpdateSelectedProfileDetails())
         profileList.OnEvent("DoubleClick", (*) => this.UseSelectedProfileFromList())
@@ -224,7 +227,6 @@ class PoeAffixReaderApp {
         renameSetButton.OnEvent("Click", (*) => this.RenameSelectedProfileSet())
         removeSetButton.OnEvent("Click", (*) => this.RemoveSelectedProfileSet())
         saveTargetButton.OnEvent("Click", (*) => this.SaveSelectedProfileTargets())
-        useButton.OnEvent("Click", (*) => this.UseSelectedProfileFromList())
         editButton.OnEvent("Click", (*) => this.EditActiveAffixGroups())
     }
 
