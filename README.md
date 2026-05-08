@@ -40,5 +40,5 @@ PoE_AffixReader v2 is an AutoHotkey v2-based Path of Exile crafting helper that 
 
 ## Documentation
 
-- For complete usage, setup, affix matching, delay tuning, and troubleshooting, see [README.en.md](C:/Users/Adrain Hui/Documents/GitHub/PoE_AffixReader/README.en.md).
-- For the full Traditional Chinese guide, see [README.zh-TW.md](C:/Users/Adrain Hui/Documents/GitHub/PoE_AffixReader/README.zh-TW.md).
+- For complete usage, setup, affix matching, delay tuning, and troubleshooting, see [README.en.md](https://github.com/bamd5alifes7/PoE_AffixReader/blob/main/README.en.md).
+- For the full Traditional Chinese guide, see [README.zh-TW.md](https://github.com/bamd5alifes7/PoE_AffixReader/blob/main/README.zh-TW.md).
