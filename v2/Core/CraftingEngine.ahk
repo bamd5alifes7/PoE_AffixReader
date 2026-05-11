@@ -131,10 +131,7 @@
                 return "chaos"
 
             case "essence":
-                if rarity = 0 {
-                    return "essence"
-                }
-                return "scouringEssence"
+                return "essence"
 
             case "scouringAlchemy":
                 if rarity = 0 {
@@ -230,10 +227,6 @@
                 this.client.UseScouringTransmutation(this.profile)
             case "regal":
                 this.client.UseCurrencyOnItem("Regal", this.profile)
-            case "scouringEssence":
-                this.client.UseCurrencyOnItem("Scouring", this.profile)
-                this.client.RandomSleep(this.profile)
-                this.client.UseCurrencyOnItem("Essence", this.profile)
             case "crafting":
                 this.client.UseCraftingButton(this.profile)
             default:
